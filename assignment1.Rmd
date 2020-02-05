@@ -15,7 +15,7 @@ In this assignment you will work with the individual level data from wave 8 of t
 
 ```{r}
 library(tidyverse)
-Data <- ...
+Data <-  read_tsv("C:/Users/kryst/OneDrive/Documents/UK.U/UKDA-6614-tab/tab/ukhls_w8/h_indresp.tab")
 ```
 
 Now you have got your data frame stored as Data. 
@@ -30,7 +30,7 @@ Complete the code below to select those variables from the data frame and save t
 
 ```{r}
 Data <- Data %>%
-        select(...)
+        select(pidp, h_eumem, h_sex_dv, h_age_dv, h_memorig)
 ```
 
 ## Filter observations (10 points)
@@ -39,7 +39,7 @@ To make nationally representative estimates from the Understanding Society data 
 
 ```{r}
 Data <- Data %>%
-        filter(...)
+  filter(h_memorig == 1)
 ```
 
 ## Recode data (20 points)
@@ -50,6 +50,8 @@ Let us tabulate the variables for EU support, sex, and age.
 table(Data$h_eumem)
 table(Data$h_sex_dv)
 table(Data$h_age_dv)
+
+
 ```
 
 You will see that all these variables are numeric. You can learn what the numeric codes mean by checking the codebook here: https://www.understandingsociety.ac.uk/documentation/mainstage/dataset-documentation/datafile/indresp/wave/8 .
@@ -64,12 +66,20 @@ In all cases, we want to create new variables.
 
 ```{r}
 Data <- Data %>%
-        mutate(EU = ...
-      
-        ) %>%
-        mutate(sex = ...) %>%
-        mutate(agegr = ...
-        )
+  mutate(EU = recode(h_eumem,
+                     '1' = '1',
+                     '2' = '0',
+                     .default = "NA")) %>%
+  mutate(sex = recode(h_sex_dv, 
+                      '1' = 'male',
+                      '2' = 'female',
+                      .default = 'other')) %>%
+  mutate(agegr = case_when(
+                        between(h_age_dv, 16, 25) ~ "16 to 25",
+                        between(h_age_dv, 26, 40) ~ "26-40",
+                        between(h_age_dv, 41, 55) ~ "41-55",
+                        between(h_age_dv, 56, 70) ~ "56-70",
+                        between(h_age_dv, 70, 150) ~ "over 70"))
 
 ```
 
@@ -78,9 +88,28 @@ Data <- Data %>%
 Let us **dplyr** to calculate how many people in the sample supported Remain and Leave, both as absolute numbers and percentages.
 
 ```{r}
-Data %>%
-        ...
-        
+prop.table(table(Data$EU))
+11118 - 9338
+
+0.543508 - 0.456492
+
+table(Data$EU, exclude = "NA") %>%
+  prop.table()
+
+barplot(table(Data$EU, exclude = "NA"), main = "EU Membership Support",
+        names.arg = c("Leave", "Remain"), col = c("red", "blue"))
+  
+
+## Hihger proprtion of people supported Remain as opposed to Leave in the sample.
+## Excluding those who did not respond, pro-Eu stance numbered 11118, or 1780 more
+## than those against. This would constitute the 8.7% victory for the Remain had 
+## the referendum been held only in this sample and everybody particpiated and voted
+## just they reported. However, the referendum produced the opposite result, granting 
+## Leave the upper hand by 3.78%. This shows that even representative sample cannot predict
+## political outcomes, especially due to flactuations in turnout and fluidity of 
+## preferences that is hard to model.
+
+      
 ```
 
 Write a couple of sentences with the interpretation of this result. How this compares with the result of the 2016 referendum? Why?
@@ -91,8 +120,7 @@ Now let us look at the support for Leave and Remain by sex and age. Use your new
 
 
 ```{r}
-Data %>%
-        ...
+
         
 ```
 
